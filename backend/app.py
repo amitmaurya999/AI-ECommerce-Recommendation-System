@@ -43,11 +43,16 @@ print(Base.metadata.tables.keys())
 
 app = FastAPI(title="AI Recommendation System API")
 
+
+origins = [
+    "http://localhost:5173",
+    "https://ai-e-commerce-recommendation-system-bdrb59pf0.vercel.app",
+    "https://ai-ecommerce-recommendation-system.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
