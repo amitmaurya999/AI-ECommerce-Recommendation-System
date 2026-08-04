@@ -636,3 +636,23 @@ def get_activity(
     )
 
     return activities    
+
+
+@app.get("/recommendations/top-rated")
+def top_rated(db: Session = Depends(get_db)):
+    return (
+        db.query(Product)
+        .order_by(Product.rating.desc())
+        .limit(8)
+        .all()
+    )
+
+
+@app.get("/recommendations/trending")
+def trending(db: Session = Depends(get_db)):
+    return (
+        db.query(Product)
+        .order_by(Product.rating.desc())
+        .limit(8)
+        .all()
+    )
