@@ -1,16 +1,17 @@
 import pandas as pd
+from collections import Counter
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from models import Product
-from collections import Counter
-from models import UserActivity
+from models import Product, UserActivity
+
 
 def get_ml_recommendations(db, product_id):
 
     products = db.query(Product).all()
 
-    if len(products) == 0:
+    if not products:
         return []
 
     data = []
@@ -28,9 +29,12 @@ def get_ml_recommendations(db, product_id):
 
     df = pd.DataFrame(data)
 
+   
     df["text"] = (
-        df["name"] + " " +
         df["category"] + " " +
+        df["category"] + " " +
+        df["category"] + " " +
+        df["name"] + " " +
         df["description"]
     )
 
@@ -47,6 +51,8 @@ def get_ml_recommendations(db, product_id):
 
     idx = index[0]
 
+    selected_category = data[idx]["category"]
+
     scores = list(enumerate(similarity[idx]))
 
     scores = sorted(
@@ -55,16 +61,40 @@ def get_ml_recommendations(db, product_id):
         reverse=True
     )
 
-    scores = scores[1:7]
+    recommendations = []
 
-    recommended = []
+    used_ids = set()
 
-    for i in scores:
-        recommended.append(
-            data[i[0]]
-        )
+    for score in scores[1:]:
 
-    return recommended
+        product = data[score[0]]
+
+        if (
+            product["category"] == selected_category
+            and product["id"] not in used_ids
+        ):
+            recommendations.append(product)
+            used_ids.add(product["id"])
+
+        if len(recommendations) == 4:
+            break
+
+    # Second Priority → Fill Remaining with Most Similar
+    if len(recommendations) < 4:
+
+        for score in scores[1:]:
+
+            product = data[score[0]]
+
+            if product["id"] not in used_ids:
+                recommendations.append(product)
+                used_ids.add(product["id"])
+
+            if len(recommendations) == 4:
+                break
+
+    return recommendations
+
 
 
 def get_personalized_recommendations(db, user_id):
@@ -90,6 +120,9 @@ def get_personalized_recommendations(db, user_id):
 
         if product:
             categories.append(product.category)
+
+    if not categories:
+        return []
 
     favorite_category = Counter(categories).most_common(1)[0][0]
 
