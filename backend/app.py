@@ -32,6 +32,10 @@ from ml_recommendation import  (get_ml_recommendations,get_personalized_recommen
 from models import UserActivity
 from schemas import ActivityCreate
 from analytics import get_dashboard_stats
+from recommendation import (
+    get_top_rated_products,
+    get_trending_products,
+)
 
 
 Base.metadata.create_all(bind=engine)
